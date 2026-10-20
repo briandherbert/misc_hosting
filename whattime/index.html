@@ -12,7 +12,11 @@
   .card{background:#1c1c1c;border-radius:14px;padding:1.5rem;text-align:center}
   .place{font-size:1.1rem;color:#aaa;margin-bottom:.6rem}
   .not{font-size:.8rem;text-transform:uppercase;letter-spacing:.15em;color:#e66}
-  .time{font-variant-numeric:tabular-nums;font-size:2.2rem;font-weight:600;margin-top:.3rem}
+  svg{width:140px;height:140px;display:block;margin:.8rem auto .4rem}
+  .face{fill:#f4f1ea;stroke:#e66;stroke-width:3}
+  .tick{stroke:#333;stroke-width:2;stroke-linecap:round}
+  .h,.m{stroke:#111;stroke-linecap:round}.h{stroke-width:5}.m{stroke-width:3.5}.s{stroke:#e66;stroke-width:1.5;stroke-linecap:round}
+  .time{font-variant-numeric:tabular-nums;font-size:1.8rem;font-weight:600;white-space:nowrap;margin-top:.3rem}
 </style>
 </head>
 <body>
@@ -30,13 +34,26 @@ const grid=document.getElementById("grid");
 clocks.forEach(c=>{
   c.offset=((1+Math.floor(Math.random()*11))*60+1+Math.floor(Math.random()*59))*60000*(Math.random()<.5?-1:1);
   const d=document.createElement("div");d.className="card";
-  d.innerHTML=`<div class="place">${c.name}</div><div class="not">it's not</div><div class="time"></div>`;
+  d.innerHTML=`<div class="place">${c.name}</div><div class="not">it's not</div>${face()}<div class="time"></div>`;
+  c.h=d.querySelector(".h");c.m=d.querySelector(".m");c.s=d.querySelector(".s");
   c.el=d.querySelector(".time");grid.appendChild(d);
 });
+function face(){
+  let t="";for(let i=0;i<12;i++){const a=i*Math.PI/6;t+=`<line class="tick" x1="${50+40*Math.sin(a)}" y1="${50-40*Math.cos(a)}" x2="${50+45*Math.sin(a)}" y2="${50-45*Math.cos(a)}"/>`;}
+  return `<svg viewBox="0 0 100 100"><circle class="face" cx="50" cy="50" r="48"/>${t}<line class="h" x1="50" y1="50" x2="50" y2="28"/><line class="m" x1="50" y1="50" x2="50" y2="16"/><line class="s" x1="50" y1="56" x2="50" y2="12"/><circle cx="50" cy="50" r="2.5" fill="#e66"/></svg>`;
+}
+function hms(date,tz){
+  const p={};new Intl.DateTimeFormat("en-US",{timeZone:tz,hour:"numeric",minute:"numeric",second:"numeric",hourCycle:"h23"}).formatToParts(date).forEach(x=>p[x.type]=+x.value);
+  return p;
+}
 function tick(){
   const now=Date.now();
   clocks.forEach(c=>{
-    c.el.textContent=new Date(now+c.offset).toLocaleTimeString([], {timeZone:c.tz,hour:"numeric",minute:"2-digit",second:"2-digit"});
+    const d=new Date(now+c.offset),t=hms(d,c.tz);
+    c.h.setAttribute("transform",`rotate(${(t.hour%12+t.minute/60)*30} 50 50)`);
+    c.m.setAttribute("transform",`rotate(${(t.minute+t.second/60)*6} 50 50)`);
+    c.s.setAttribute("transform",`rotate(${t.second*6} 50 50)`);
+    c.el.textContent=d.toLocaleTimeString([], {timeZone:c.tz,hour:"numeric",minute:"2-digit",second:"2-digit"});
   });
 }
 tick();setInterval(tick,1000);
