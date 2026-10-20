@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What time isn't it</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+       background:#111;color:#eee;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  h1{font-weight:600;font-size:clamp(1.8rem,5vw,3rem);margin:0 0 2rem}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;width:min(960px,92vw)}
+  .card{background:#1c1c1c;border-radius:14px;padding:1.5rem;text-align:center}
+  .place{font-size:1.1rem;color:#aaa;margin-bottom:.6rem}
+  .not{font-size:.8rem;text-transform:uppercase;letter-spacing:.15em;color:#e66}
+  .time{font-variant-numeric:tabular-nums;font-size:2.2rem;font-weight:600;margin-top:.3rem}
+</style>
+</head>
+<body>
+<h1>What time isn't it</h1>
+<div class="grid" id="grid"></div>
+<script>
+const clocks=[
+  {name:"Here",tz:undefined},
+  {name:"New York",tz:"America/New_York"},
+  {name:"London",tz:"Europe/London"},
+  {name:"Tokyo",tz:"Asia/Tokyo"}
+];
+// Each clock gets its own wrong offset: 1 to 11 hours plus 1 to 59 minutes, never zero.
+const grid=document.getElementById("grid");
+clocks.forEach(c=>{
+  c.offset=((1+Math.floor(Math.random()*11))*60+1+Math.floor(Math.random()*59))*60000*(Math.random()<.5?-1:1);
+  const d=document.createElement("div");d.className="card";
+  d.innerHTML=`<div class="place">${c.name}</div><div class="not">it's not</div><div class="time"></div>`;
+  c.el=d.querySelector(".time");grid.appendChild(d);
+});
+function tick(){
+  const now=Date.now();
+  clocks.forEach(c=>{
+    c.el.textContent=new Date(now+c.offset).toLocaleTimeString([], {timeZone:c.tz,hour:"numeric",minute:"2-digit",second:"2-digit"});
+  });
+}
+tick();setInterval(tick,1000);
+</script>
+</body>
+</html>
